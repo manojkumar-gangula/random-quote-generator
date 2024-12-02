@@ -1,40 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./QuoteContainer.css";
+import Quote from "./Quote";
+
 function QuoteContainer() {
-  const [quote, setQuote] = useState("No Quote!");
-  const [author, setAuthor] = useState("No Author!");
+  const quote = "Never Quit!";
+  const author = "Unknown";
   const tweetContent = quote + " - " + author;
-  const quoteApiUrl = "/api/random";
+  const childRef = useRef();
   useEffect(() => {
-    getQuoteDetails(quoteApiUrl);
+    handleNewQuoteClick();
   }, []);
-  async function getQuoteDetails(quoteApiUrl) {
-    try {
-      console.log("fetching new quote");
-      const quoteResponse = await fetch(quoteApiUrl);
-      let data = await quoteResponse.json();
-      setQuote(data[0].q);
-      setAuthor(data[0].a);
-    } catch (error) {
-      console.log(error);
-    }
-  }
+
   function handleNewQuoteClick() {
-    console.log("fetching new quote from click");
-    getQuoteDetails(quoteApiUrl);
+    if (childRef.current) childRef.current.getQuoteDetails();
   }
 
-  useEffect(() => {
-    console.log(quote);
-  }, [quote]);
+  function handleScreenshotButton() {
+    if (childRef.current) childRef.current.captureScreenshot();
+  }
 
   return (
     <div className="quoteContainer">
-      <div className="quote">
-        <q>{quote}</q>
-        <p>- {author}</p>
-      </div>
+      <Quote ref={childRef} />
       <div className="options">
         <div>
           <a
@@ -46,6 +34,14 @@ function QuoteContainer() {
           >
             <i className="fa-brands fa-twitter" />
           </a>
+        </div>
+        <div>
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={handleScreenshotButton}
+          >
+            Screenshot
+          </button>
         </div>
         <div>
           <button
