@@ -1,40 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./QuoteContainer.css";
+import Quote from "./Quote";
+import html2canvas from "html2canvas";
+
 function QuoteContainer() {
-  const [quote, setQuote] = useState("No Quote!");
-  const [author, setAuthor] = useState("No Author!");
-  const tweetContent = quote + " - " + author;
-  const quoteApiUrl = "/api/random";
+  const [tweetContent, setTweetContent] = useState("Never Quit! - Unknown");
+  const childRef = useRef();
   useEffect(() => {
-    getQuoteDetails(quoteApiUrl);
+    handleNewQuoteClick();
   }, []);
-  async function getQuoteDetails(quoteApiUrl) {
-    try {
-      console.log("fetching new quote");
-      const quoteResponse = await fetch(quoteApiUrl);
-      let data = await quoteResponse.json();
-      setQuote(data[0].q);
-      setAuthor(data[0].a);
-    } catch (error) {
-      console.log(error);
-    }
+
+  function updateQuoteInParent(updatedContent) {
+    setTweetContent(updatedContent);
   }
   function handleNewQuoteClick() {
-    console.log("fetching new quote from click");
-    getQuoteDetails(quoteApiUrl);
+    if (childRef.current) childRef.current.getQuoteDetails();
   }
 
-  useEffect(() => {
-    console.log(quote);
-  }, [quote]);
+  function handleScreenshotButton() {
+    let canvasPromise = html2canvas(document.getElementById("quote"), {
+      scale: 2,
+      backgroundColor: null,
+    });
+    canvasPromise
+      .then((canvas) => {
+        let dataURL = canvas.toDataURL("image/png");
+        let a = document.createElement("a");
+        a.href = dataURL;
+        a.download = "screenshot.png";
+        a.click();
+      })
+      .catch((err) => {
+        console.log("Not able to capture!");
+        console.log(err);
+      });
+  }
 
   return (
     <div className="quoteContainer">
-      <div className="quote">
-        <q>{quote}</q>
-        <p>- {author}</p>
-      </div>
+      <Quote ref={childRef} updateQuoteInParent={updateQuoteInParent} />
       <div className="options">
         <div>
           <a
@@ -46,6 +51,14 @@ function QuoteContainer() {
           >
             <i className="fa-brands fa-twitter" />
           </a>
+        </div>
+        <div>
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={handleScreenshotButton}
+          >
+            Screenshot
+          </button>
         </div>
         <div>
           <button
